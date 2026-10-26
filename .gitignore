@@ -22,3 +22,4 @@ htmlcov/
 
 # Runtime artefacts
 journal*.jsonl
+.claude/
