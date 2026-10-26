@@ -30,6 +30,7 @@ server = ["static/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests", "orderbook"]
 addopts = "-q --doctest-modules"
+filterwarnings = ["ignore:Using .httpx. with .starlette.testclient. is deprecated"]
 
 [tool.ruff]
 line-length = 100
