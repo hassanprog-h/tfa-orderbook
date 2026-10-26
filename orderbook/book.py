@@ -27,7 +27,7 @@ from __future__ import annotations
 import heapq
 from collections import OrderedDict
 from collections.abc import Callable, Iterator
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from .models import (
     Depth,
@@ -46,7 +46,7 @@ from .models import (
 if TYPE_CHECKING:
     from .journal import Journal
 
-Event = Union[Trade, OrderUpdate]
+Event = Trade | OrderUpdate
 Listener = Callable[[Event], None]
 
 
@@ -134,9 +134,7 @@ class BookSide:
 
     def top(self, n: int) -> list[Level]:
         prices = heapq.nsmallest(n, self.levels, key=self._key)
-        return [
-            Level(p, self.levels[p].total_quantity, len(self.levels[p].orders)) for p in prices
-        ]
+        return [Level(p, self.levels[p].total_quantity, len(self.levels[p].orders)) for p in prices]
 
     def __iter__(self) -> Iterator[PriceLevel]:
         """Levels from best to worst."""
@@ -191,8 +189,15 @@ class OrderBook:
         _check_quantity(quantity)
         if post_only and tif is not TimeInForce.GTC:
             raise ValueError("a post-only order must be GTC (it exists to rest in the book)")
-        self._record("limit", side=side.value, price=price, quantity=quantity,
-                     trader_id=trader_id, tif=tif.value, post_only=post_only)
+        self._record(
+            "limit",
+            side=side.value,
+            price=price,
+            quantity=quantity,
+            trader_id=trader_id,
+            tif=tif.value,
+            post_only=post_only,
+        )
         order = self._new_order(side, price, quantity, trader_id, OrderType.LIMIT, tif, post_only)
         return self._process(order)
 
@@ -212,8 +217,9 @@ class OrderBook:
         _check_quantity(quantity)
         if tif is TimeInForce.GTC:
             raise ValueError("a market order cannot rest in the book: use IOC or FOK")
-        self._record("market", side=side.value, quantity=quantity, trader_id=trader_id,
-                     tif=tif.value)
+        self._record(
+            "market", side=side.value, quantity=quantity, trader_id=trader_id, tif=tif.value
+        )
         order = self._new_order(side, None, quantity, trader_id, OrderType.MARKET, tif, False)
         return self._process(order)
 
@@ -244,8 +250,9 @@ class OrderBook:
 
         order = self._orders.get(order_id)
         if order is None:
-            return ExecutionReport(order_id, OrderStatus.REJECTED, 0, 0,
-                                   reason="unknown or closed order")
+            return ExecutionReport(
+                order_id, OrderStatus.REJECTED, 0, 0, reason="unknown or closed order"
+            )
         new_price = order.price if price is None else price
         new_remaining = order.remaining if quantity is None else quantity
 
@@ -370,12 +377,14 @@ class OrderBook:
         if order.post_only:
             best = opposite.best_price()
             if best is not None and self._crosses(order, best):
-                return self._close(order, OrderStatus.REJECTED, [],
-                                   "post-only order would take liquidity")
+                return self._close(
+                    order, OrderStatus.REJECTED, [], "post-only order would take liquidity"
+                )
 
         if order.tif is TimeInForce.FOK and self._fillable(order) < order.remaining:
-            return self._close(order, OrderStatus.CANCELLED, [],
-                               "fill-or-kill order cannot be fully filled")
+            return self._close(
+                order, OrderStatus.CANCELLED, [], "fill-or-kill order cannot be fully filled"
+            )
 
         trades, stp_cancelled = self._match(order, opposite)
 
@@ -410,8 +419,7 @@ class OrderBook:
                 policy = self.self_trade_prevention
                 if policy in (SelfTradePrevention.CANCEL_RESTING, SelfTradePrevention.CANCEL_BOTH):
                     self._remove_resting(resting, "self-trade prevention")
-                if policy in (SelfTradePrevention.CANCEL_INCOMING,
-                              SelfTradePrevention.CANCEL_BOTH):
+                if policy in (SelfTradePrevention.CANCEL_INCOMING, SelfTradePrevention.CANCEL_BOTH):
                     return trades, True
                 continue
 
@@ -476,8 +484,9 @@ class OrderBook:
         order.status = OrderStatus.CANCELLED
         self._emit_order(order, reason)
 
-    def _close(self, order: Order, status: OrderStatus, trades: list[Trade],
-               reason: str | None) -> ExecutionReport:
+    def _close(
+        self, order: Order, status: OrderStatus, trades: list[Trade], reason: str | None
+    ) -> ExecutionReport:
         """Finish an incoming order that does not (or no longer) rest in the book."""
         order.status = status
         self._emit_order(order, reason)
@@ -493,9 +502,18 @@ class OrderBook:
 
     def _emit_order(self, order: Order, reason: str | None) -> None:
         if self._listeners:
-            self._emit(OrderUpdate(order.order_id, order.side, order.price, order.status,
-                                   order.remaining if order.status.is_open else 0,
-                                   order.filled, order.trader_id, reason))
+            self._emit(
+                OrderUpdate(
+                    order.order_id,
+                    order.side,
+                    order.price,
+                    order.status,
+                    order.remaining if order.status.is_open else 0,
+                    order.filled,
+                    order.trader_id,
+                    reason,
+                )
+            )
 
     def _record(self, command: str, **args) -> None:
         if self.journal is not None:

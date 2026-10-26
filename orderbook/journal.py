@@ -23,7 +23,8 @@ class Journal:
 
     def __init__(self, path: str | Path | None = None) -> None:
         self.entries: list[dict[str, Any]] = []
-        self._file: IO[str] | None = open(path, "w", encoding="utf-8") if path else None
+        # Kept open for the lifetime of the journal; closed by close().
+        self._file: IO[str] | None = open(path, "w", encoding="utf-8") if path else None  # noqa: SIM115
 
     def start(self, book: OrderBook) -> None:
         self.record("config", {"self_trade_prevention": book.self_trade_prevention.value})
