@@ -1,5 +1,9 @@
 # TFA Order Book
 
+[![CI](https://github.com/hassanprog-h/tfa-orderbook/actions/workflows/ci.yml/badge.svg)](https://github.com/hassanprog-h/tfa-orderbook/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%20%E2%80%93%203.13-blue)
+![Engine dependencies](https://img.shields.io/badge/engine%20dependencies-0-brightgreen)
+
 A **price-time priority limit order book and matching engine** in pure Python, with a
 **live trading terminal** in the browser where you can trade against simulated market
 participants.
