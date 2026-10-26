@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Tooling
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Notebooks / editors / OS
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+
+# Runtime artefacts
+journal*.jsonl
