@@ -1,8 +1,17 @@
 """``python -m server [--host 127.0.0.1] [--port 8000]``"""
 
 import argparse
+import sys
 
-import uvicorn
+try:
+    import uvicorn
+except ModuleNotFoundError:
+    sys.exit(
+        "The web server needs FastAPI and uvicorn, which this Python does not have:\n"
+        f"  {sys.executable}\n\n"
+        "Use the project's virtual environment:  .venv/bin/python -m server\n"
+        'or install them here:                     pip install -e ".[server]"'
+    )
 
 
 def main() -> None:
